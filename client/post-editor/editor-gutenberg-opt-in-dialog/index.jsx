@@ -29,6 +29,11 @@ import {
 	bumpStat,
 } from 'state/analytics/actions';
 
+/**
+ * Style dependencies
+ */
+import './style.scss';
+
 class EditorGutenbergOptInDialog extends Component {
 	static propTypes = {
 		// connected properties
