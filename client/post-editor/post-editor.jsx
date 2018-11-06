@@ -84,6 +84,11 @@ import EditorRevisionsDialog from 'post-editor/editor-revisions/dialog';
 import PageViewTracker from 'lib/analytics/page-view-tracker';
 import { pauseGuidedTour } from 'state/ui/guided-tours/actions';
 
+/**
+ * Style dependencies
+ */
+import './style.scss';
+
 export class PostEditor extends React.Component {
 	static propTypes = {
 		siteId: PropTypes.number,
