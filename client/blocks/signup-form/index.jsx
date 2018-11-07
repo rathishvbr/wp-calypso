@@ -6,7 +6,7 @@
 
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { find, forEach, head, includes, keys, map } from 'lodash';
+import { find, forEach, head, includes, keys, map, pick, thru } from 'lodash';
 import debugModule from 'debug';
 import classNames from 'classnames';
 import i18n, { localize } from 'i18n-calypso';
@@ -84,6 +84,7 @@ class SignupForm extends Component {
 		submitting: PropTypes.bool,
 		suggestedUsername: PropTypes.string.isRequired,
 		translate: PropTypes.func.isRequired,
+		useFullName: PropTypes.bool,
 
 		// Connected props
 		oauth2Client: PropTypes.object,
@@ -100,10 +101,13 @@ class SignupForm extends Component {
 		form: null,
 		signedUp: false,
 		validationInitialized: false,
+		generatedUsername: '',
 	};
 
 	getInitialFields() {
 		return {
+			firstName: '',
+			lastName: '',
 			email: this.props.email || '',
 			username: '',
 			password: '',
@@ -185,6 +189,13 @@ class SignupForm extends Component {
 		}
 	}
 
+	sanitizeName( name ) {
+		return name && thru(
+			name.replace( /[^a-zA-Z]/g, '' ),
+			( str ) => `${ str.charAt( 0 ).toUpperCase() }${ str.slice( 1 ) }`
+		);
+	}
+
 	sanitizeEmail( email ) {
 		return email && email.replace( /\s+/g, '' ).toLowerCase();
 	}
@@ -194,19 +205,36 @@ class SignupForm extends Component {
 	}
 
 	sanitize = ( fields, onComplete ) => {
-		const sanitizedEmail = this.sanitizeEmail( fields.email ),
-			sanitizedUsername = this.sanitizeUsername( fields.username );
+		const sanitizedEmail = this.sanitizeEmail( fields.email );
+		const sanitizedFirstName = this.sanitizeName( fields.firstName );
+		const sanitizedLastName = this.sanitizeName( fields.lastName );
+		const sanitizedUsername = this.sanitizeUsername( fields.username );
 
-		if ( fields.email !== sanitizedEmail || fields.username !== sanitizedUsername ) {
+		if (
+			fields.email !== sanitizedEmail ||
+			fields.firstName !== sanitizedFirstName ||
+			fields.lastName !== sanitizedLastName ||
+			fields.username !== sanitizedUsername
+		) {
 			onComplete( {
 				email: sanitizedEmail,
+				firstName: sanitizedFirstName,
+				lastName: sanitizedLastName,
 				username: sanitizedUsername,
 			} );
 		}
 	};
 
 	validate = ( fields, onComplete ) => {
-		wpcom.undocumented().validateNewUser( fields, ( error, response ) => {
+		const data = pick( fields, [ 'email', 'username', 'password' ] );
+
+		if ( this.props.useFullName ) {
+			data.first_name = fields.firstName;
+			data.last_name = fields.lastName;
+			delete data.username;
+		}
+
+		wpcom.undocumented().validateNewUser( data, ( error, response ) => {
 			if ( this.props.submitting ) {
 				// this is a stale callback, we have already signed up or are logging in
 				return;
@@ -388,6 +416,8 @@ class SignupForm extends Component {
 
 	getUserData() {
 		return {
+			first_name: formState.getFieldValue( this.state.form, 'firstName' ),
+			last_name: formState.getFieldValue( this.state.form, 'lastName' ),
 			username: formState.getFieldValue( this.state.form, 'username' ),
 			password: formState.getFieldValue( this.state.form, 'password' ),
 			email: formState.getFieldValue( this.state.form, 'email' ),
@@ -417,8 +447,7 @@ class SignupForm extends Component {
 									a: <a href={ link } onClick={ this.props.trackLoginMidFlow } />,
 								},
 							} ) }
-						</p>
-					</span>
+						</p>					</span>
 				);
 			}
 			return message;
@@ -431,6 +460,38 @@ class SignupForm extends Component {
 
 		return (
 			<div>
+				{ this.props.useFullName && (
+					<>
+						<FormLabel htmlFor="firstName">{ this.props.translate( 'Your first name' ) }</FormLabel>
+						<FormTextInput
+							autoCorrect="off"
+							className="signup-form__input"
+							disabled={ this.state.submitting || !! this.props.disabled }
+							id="firstName"
+							name="firstName"
+							value={ formState.getFieldValue( this.state.form, 'firstName' ) }
+							isError={ formState.isFieldInvalid( this.state.form, 'firstName' ) }
+							isValid={ formState.isFieldValid( this.state.form, 'firstName' ) }
+							onBlur={ this.handleBlur }
+							onChange={ this.handleChangeEvent }
+						/>
+
+						<FormLabel htmlFor="lastName">{ this.props.translate( 'Your last name' ) }</FormLabel>
+						<FormTextInput
+							autoCorrect="off"
+							className="signup-form__input"
+							disabled={ this.state.submitting || !! this.props.disabled }
+							id="lastName"
+							name="lastName"
+							value={ formState.getFieldValue( this.state.form, 'lastName' ) }
+							isError={ formState.isFieldInvalid( this.state.form, 'lastName' ) }
+							isValid={ formState.isFieldValid( this.state.form, 'lastName' ) }
+							onBlur={ this.handleBlur }
+							onChange={ this.handleChangeEvent }
+						/>
+					</>
+				) }
+
 				<FormLabel htmlFor="email">{ this.props.translate( 'Your email address' ) }</FormLabel>
 				<FormTextInput
 					autoCapitalize="off"
@@ -454,23 +515,27 @@ class SignupForm extends Component {
 					<FormInputValidation isError text={ this.getErrorMessagesWithLogin( 'email' ) } />
 				) }
 
-				<FormLabel htmlFor="username">{ this.props.translate( 'Choose a username' ) }</FormLabel>
-				<FormTextInput
-					autoCapitalize="off"
-					autoCorrect="off"
-					className="signup-form__input"
-					disabled={ this.state.submitting || this.props.disabled }
-					id="username"
-					name="username"
-					value={ formState.getFieldValue( this.state.form, 'username' ) }
-					isError={ formState.isFieldInvalid( this.state.form, 'username' ) }
-					isValid={ formState.isFieldValid( this.state.form, 'username' ) }
-					onBlur={ this.handleBlur }
-					onChange={ this.handleChangeEvent }
-				/>
+				{ ! this.props.useFullName && (
+					<>
+						<FormLabel htmlFor="username">{ this.props.translate( 'Choose a username' ) }</FormLabel>
+						<FormTextInput
+							autoCapitalize="off"
+							autoCorrect="off"
+							className="signup-form__input"
+							disabled={ this.state.submitting || this.props.disabled }
+							id="username"
+							name="username"
+							value={ formState.getFieldValue( this.state.form, 'username' ) }
+							isError={ formState.isFieldInvalid( this.state.form, 'username' ) }
+							isValid={ formState.isFieldValid( this.state.form, 'username' ) }
+							onBlur={ this.handleBlur }
+							onChange={ this.handleChangeEvent }
+						/>
 
-				{ formState.isFieldInvalid( this.state.form, 'username' ) && (
-					<FormInputValidation isError text={ this.getErrorMessagesWithLogin( 'username' ) } />
+						{ formState.isFieldInvalid( this.state.form, 'username' ) && (
+							<FormInputValidation isError text={ this.getErrorMessagesWithLogin( 'username' ) } />
+						) }
+					</>
 				) }
 
 				<FormLabel htmlFor="password">{ this.props.translate( 'Choose a password' ) }</FormLabel>
