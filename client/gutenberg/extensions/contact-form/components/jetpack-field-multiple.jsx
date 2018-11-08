@@ -10,7 +10,6 @@ import { Component, Fragment } from '@wordpress/element';
 /**
  * Internal dependencies
  */
-import JetpackFieldSettings from './jetpack-field-settings';
 import JetpackFieldLabel from './jetpack-field-label';
 import JetpackOption from './jetpack-option';
 import { __ } from 'gutenberg/extensions/presets/jetpack/utils/i18n';
@@ -65,10 +64,6 @@ class JetpackFieldMultiple extends Component {
 
 		return (
 			<Fragment>
-				<JetpackFieldSettings
-					required={ this.props.required }
-					setAttributes={ this.props.setAttributes }
-				/>
 				<BaseControl
 					id={ `jetpack-field-multiple-${ this.props.instanceId }` }
 					className="jetpack-field jetpack-field-multiple"

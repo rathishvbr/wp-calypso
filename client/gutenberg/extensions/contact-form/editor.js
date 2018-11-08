@@ -3,7 +3,7 @@
 /**
  * External dependencies
  */
-import { registerBlockType, getBlockType } from '@wordpress/blocks';
+import { registerBlockType, getBlockType, createBlock } from '@wordpress/blocks';
 import { Fragment } from '@wordpress/element';
 import { SVG, Path } from '@wordpress/components';
 import { InnerBlocks } from '@wordpress/editor';
@@ -114,6 +114,78 @@ const FieldDefaults = {
 			type: 'array',
 			default: [],
 		},
+	},
+	transforms: {
+		to: [
+			{
+				type: 'block',
+				blocks: [ 'jetpack/field-text' ],
+				isMatch: ( { options } ) => ! options.length,
+				transform: attributes => createBlock( 'jetpack/field-text', attributes ),
+			},
+			{
+				type: 'block',
+				blocks: [ 'jetpack/field-name' ],
+				isMatch: ( { options } ) => ! options.length,
+				transform: attributes => createBlock( 'jetpack/field-name', attributes ),
+			},
+			{
+				type: 'block',
+				blocks: [ 'jetpack/field-email' ],
+				isMatch: ( { options } ) => ! options.length,
+				transform: attributes => createBlock( 'jetpack/field-email', attributes ),
+			},
+			{
+				type: 'block',
+				blocks: [ 'jetpack/field-url' ],
+				isMatch: ( { options } ) => ! options.length,
+				transform: attributes => createBlock( 'jetpack/field-url', attributes ),
+			},
+			{
+				type: 'block',
+				blocks: [ 'jetpack/field-date' ],
+				isMatch: ( { options } ) => ! options.length,
+				transform: attributes => createBlock( 'jetpack/field-date', attributes ),
+			},
+			{
+				type: 'block',
+				blocks: [ 'jetpack/field-telephone' ],
+				isMatch: ( { options } ) => ! options.length,
+				transform: attributes => createBlock( 'jetpack/field-telephone', attributes ),
+			},
+			{
+				type: 'block',
+				blocks: [ 'jetpack/field-textarea' ],
+				isMatch: ( { options } ) => ! options.length,
+				transform: attributes => createBlock( 'jetpack/field-textarea', attributes ),
+			},
+			/* // not yet ready for prime time.
+			{
+				type: 'block',
+				blocks: [ 'jetpack/field-checkbox' ],
+				isMatch: ( { options } ) => 1 === options.length,
+				transform: ( attributes )=>createBlock( 'jetpack/field-checkbox', attributes )
+			},
+			*/
+			{
+				type: 'block',
+				blocks: [ 'jetpack/field-checkbox-multiple' ],
+				isMatch: ( { options } ) => 1 <= options.length,
+				transform: attributes => createBlock( 'jetpack/field-checkbox-multiple', attributes ),
+			},
+			{
+				type: 'block',
+				blocks: [ 'jetpack/field-radio' ],
+				isMatch: ( { options } ) => 1 <= options.length,
+				transform: attributes => createBlock( 'jetpack/field-radio', attributes ),
+			},
+			{
+				type: 'block',
+				blocks: [ 'jetpack/field-select' ],
+				isMatch: ( { options } ) => 1 <= options.length,
+				transform: attributes => createBlock( 'jetpack/field-select', attributes ),
+			},
+		],
 	},
 	save: function() {
 		return null;
@@ -272,12 +344,19 @@ registerBlockType(
 registerBlockType(
 	'jetpack/field-checkbox-multiple',
 	Object.assign( {}, FieldDefaults, {
-		title: __( 'Checkbox Multiple' ),
+		title: __( 'Checkbox group' ),
 		description: __( 'People love options. Add several checkbox items.' ),
 		icon: renderSVG(
 			<Path d="M13 7.5h5v2h-5zm0 7h5v2h-5zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM11 6H6v5h5V6zm-1 4H7V7h3v3zm1 3H6v5h5v-5zm-1 4H7v-3h3v3z" />
 		),
 		edit: editMultiField( 'checkbox' ),
+		attributes: {
+			...FieldDefaults.attributes,
+			label: {
+				type: 'string',
+				default: 'Choose several',
+			},
+		},
 	} )
 );
 
@@ -295,6 +374,13 @@ registerBlockType(
 			</Fragment>
 		),
 		edit: editMultiField( 'radio' ),
+		attributes: {
+			...FieldDefaults.attributes,
+			label: {
+				type: 'string',
+				default: 'Choose one',
+			},
+		},
 	} )
 );
 
