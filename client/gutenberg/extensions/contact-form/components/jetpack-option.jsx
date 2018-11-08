@@ -72,7 +72,7 @@ class JetpackOption extends Component {
 				/>
 				<IconButton
 					className="jetpack-option__remove"
-					icon="no"
+					icon="trash"
 					label={ __( 'Remove option' ) }
 					onClick={ this.onDeleteOption }
 				/>
