@@ -65,17 +65,19 @@ class JetpackOption extends Component {
 					type="text"
 					className="jetpack-option__input"
 					value={ this.props.option }
-					placeholder={ __( 'Enter your option value here…' ) }
+					placeholder={ __( 'Write option…' ) }
 					onChange={ this.onChangeOption }
 					onKeyDown={ this.onKeyPress }
 					ref={ this.textInput }
 				/>
-				<IconButton
-					className="jetpack-option__remove"
-					icon="trash"
-					label={ __( 'Remove option' ) }
-					onClick={ this.onDeleteOption }
-				/>
+				{ this.props.isSelected && (
+					<IconButton
+						className="jetpack-option__remove"
+						icon="no"
+						label={ __( 'Remove option' ) }
+						onClick={ this.onDeleteOption }
+					/>
+				) }
 			</li>
 		);
 	}
