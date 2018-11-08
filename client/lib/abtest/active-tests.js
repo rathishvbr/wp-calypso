@@ -110,4 +110,12 @@ export default {
 		},
 		defaultVariation: 'yes',
 	},
+	calypsoifyGutenberg: {
+		datestamp: '20181107',
+		variations: {
+			yes: 50,
+			no: 50,
+		},
+		defaultVariation: 'yes',
+	},
 };
